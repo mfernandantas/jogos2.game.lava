@@ -1888,7 +1888,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AreaDeAtivacao
   tagDoAlvo: Player
-  inimigosNaArea: []
+  inimigosNaArea:
+  - {fileID: 685333417}
+  - {fileID: 242148940}
+  - {fileID: 307420725}
   desativarAoSair: 1
 --- !u!65 &689657963
 BoxCollider:
