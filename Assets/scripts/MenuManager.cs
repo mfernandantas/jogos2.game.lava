@@ -20,4 +20,9 @@ public class MenuManager : MonoBehaviour
     {
         painelComoJogar.SetActive(false);
     }
+
+    public void VoltarMenu()
+    {
+        SceneManager.LoadScene("Menu");
+    }
 }

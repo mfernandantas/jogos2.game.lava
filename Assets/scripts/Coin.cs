@@ -3,52 +3,58 @@ using UnityEngine;
 public class Coin : MonoBehaviour
 {
     [Header("Hover Settings")]
-    [SerializeField] private float hoverHeight = 0.3f;      // Altura da flutuação
-    [SerializeField] private float hoverSpeed = 1.5f;       // Velocidade da flutuação
-    [SerializeField] private float rotationSpeed = 90f;     // Velocidade de rotação (graus por segundo)
-    
+    [SerializeField] private float hoverHeight = 0.3f;
+    [SerializeField] private float hoverSpeed = 1.5f;
+    [SerializeField] private float rotationSpeed = 90f;
+
     [Header("Collection Settings")]
-    [SerializeField] private GameObject particlePrefab;      // Prefab do sistema de partículas (deve ter um ParticleSystem)
-    [SerializeField] private float particleDuration = 2f;    // Tempo que as partículas ficam ativas antes de serem destruídas
-    
+    [SerializeField] private GameObject particlePrefab;
+    [SerializeField] private float particleDuration = 2f;
+
     [Header("Audio (opcional)")]
-    [SerializeField] private AudioClip collectSound;         // Som de coleta (opcional)
+    [SerializeField] private AudioClip collectSound;
     [SerializeField] private float soundVolume = 1f;
-    
+
     // Referências internas
     private Vector3 startPosition;
-    private float randomOffset; // Para dar variação entre moedas
-    
+    private float randomOffset;
+
+    // Evita contar a mesma moeda duas vezes
+    private bool coletada = false;
+
     private void Start()
     {
         // Guarda a posição inicial
         startPosition = transform.position;
-        // Gera um offset aleatório para cada moeda (movimento dessincronizado)
+
+        // Faz cada moeda flutuar em um momento diferente
         randomOffset = Random.Range(0f, Mathf.PI * 2f);
     }
-    
+
     private void Update()
     {
-        // --- Flutuação (hover) ---
-        float newY = startPosition.y + Mathf.Sin((Time.time + randomOffset) * hoverSpeed) * hoverHeight;
-        transform.position = new Vector3(transform.position.x, newY, transform.position.z);
-        
-        // --- Rotação contínua ---
+        // --- Flutuação ---
+        float newY = startPosition.y +
+            Mathf.Sin((Time.time + randomOffset) * hoverSpeed) * hoverHeight;
+
+        transform.position = new Vector3(
+            transform.position.x,
+            newY,
+            transform.position.z
+        );
+
+        // --- Rotação ---
         transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
     }
-    
-    // Detecção de colisão com o jogador (assumindo que o jogador tem um Collider com trigger ou não)
+
     private void OnTriggerEnter(Collider other)
     {
-        // Verifica se o objeto que colidiu é o jogador
-        // Você pode usar tag "Player" ou uma camada específica
         if (other.CompareTag("Player"))
         {
             Collect();
         }
     }
-    
-    // Também funciona com colisão normal (não trigger)
+
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Player"))
@@ -56,33 +62,45 @@ public class Coin : MonoBehaviour
             Collect();
         }
     }
-    
+
     private void Collect()
     {
-        // --- Toca o som de coleta (se houver) ---
+        // Impede a moeda de ser coletada duas vezes
+        if (coletada)
+            return;
+
+        coletada = true;
+
+        // --- Atualiza o contador ---
+        if (CoinManager.instance != null)
+        {
+            CoinManager.instance.ColetarMoeda();
+        }
+
+        // --- Som ---
         if (collectSound != null)
         {
-            AudioSource.PlayClipAtPoint(collectSound, transform.position, soundVolume);
+            AudioSource.PlayClipAtPoint(
+                collectSound,
+                transform.position,
+                soundVolume
+            );
         }
-        
-        // --- Spawna as partículas ---
+
+        // --- Partículas ---
         if (particlePrefab != null)
         {
-            GameObject particles = Instantiate(particlePrefab, transform.position, Quaternion.identity);
-            // Destroi as partículas após um tempo (para não poluir a cena)
+            GameObject particles = Instantiate(
+                particlePrefab,
+                transform.position,
+                Quaternion.identity
+            );
+
             Destroy(particles, particleDuration);
         }
-        else
-        {
-            Debug.LogWarning("Particle prefab não atribuído na moeda " + gameObject.name);
-        }
-        
-        // --- Desativa a moeda ---
-        // Opção 1: Destruir imediatamente
-        // Destroy(gameObject);
-        
-        // Opção 2: Desativar e depois destruir (mais suave para animações)
+
+        // --- Remove a moeda ---
         gameObject.SetActive(false);
-        Destroy(gameObject, 0.5f); // Destroi após meio segundo (dá tempo de tocar som/soltar partículas)
+        Destroy(gameObject, 0.5f);
     }
 }
