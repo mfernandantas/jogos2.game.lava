@@ -18,13 +18,16 @@ public class CoinManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
+
+        // Garante que o jogo começa rodando normalmente
+        Time.timeScale = 1f;
     }
 
     private void Start()
     {
         AtualizarTexto();
 
-        // Garante que a tela de vitória começa escondida
+        // Tela de vitória começa escondida
         if (painelVitoria != null)
         {
             painelVitoria.SetActive(false);
@@ -33,6 +36,7 @@ public class CoinManager : MonoBehaviour
 
     public void ColetarMoeda()
     {
+        // Se já venceu, não conta mais moedas
         if (venceu)
             return;
 
@@ -40,7 +44,7 @@ public class CoinManager : MonoBehaviour
 
         AtualizarTexto();
 
-        // Chegou em 10 moedas
+        // Verifica se coletou todas as moedas
         if (moedasColetadas >= totalMoedas)
         {
             Vitoria();
@@ -51,7 +55,8 @@ public class CoinManager : MonoBehaviour
     {
         if (textoMoedas != null)
         {
-            textoMoedas.text = "MOEDAS: " + moedasColetadas + "/" + totalMoedas;
+            textoMoedas.text =
+                "MOEDAS: " + moedasColetadas + "/" + totalMoedas;
         }
     }
 
@@ -59,13 +64,17 @@ public class CoinManager : MonoBehaviour
     {
         venceu = true;
 
+        // Mostra a tela de vitória
         if (painelVitoria != null)
         {
             painelVitoria.SetActive(true);
         }
         else
         {
-            Debug.LogWarning("Painel_Vitoria não foi colocado no CoinManager!");
+            Debug.LogWarning("Painel_Vitoria não foi atribuído no CoinManager!");
         }
+
+        // Congela jogador, inimigos, física etc.
+        Time.timeScale = 0f;
     }
 }
